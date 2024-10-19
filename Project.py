@@ -5,7 +5,7 @@
 # The train folder and test folder are separated. The former is used to fit the model, and the latter is used to predict. The stage=Test setting has been added in ImageDataset and DataModule.
 
 # %%
-pip install torch-scatter -f https://data.pyg.org/whl/torch-1.13.0+${cu124}.html
+
 import os
 import random
 import pandas as pd
@@ -18,6 +18,7 @@ import pytorch_lightning as pl
 import matplotlib.pyplot as plt
 from sklearn.metrics import classification_report
 from PIL import Image
+pip install torch-scatter -f https://data.pyg.org/whl/torch-1.13.0+${cu124}.html
 
 # Check if GPU is available
 if torch.cuda.is_available():
