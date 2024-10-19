@@ -3,7 +3,7 @@ torch-scatter
 streamlit==1.39.0
 torch==2.4.0
 torchvision==0.20.0
-Pillow==11.0.0
+Pillow==10.0.0
 matplotlib==3.9.2
 
 
