@@ -90,5 +90,5 @@ if uploaded_file is not None:
     if len(predicted_labels) > 0:
         st.write(f"Predicted Class: {predicted_labels[-1]}")
     else:
-        st.write("No predictions available yet."
+        st.write("No predictions available yet.")
 
