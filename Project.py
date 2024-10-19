@@ -434,250 +434,53 @@ plt.show()
 
 
 # %% [markdown]
-# Old
-
-# %%
-from torch.utils.data import DataLoader, Dataset
-from torchvision import datasets
-
-# Create DataLoaders from your preprocessed data
-train_loader = DataLoader(
-    datasets.ImageFolder(train_dir, transform=transform),
-    batch_size=32, shuffle=True
-)
-val_loader = DataLoader(
-    datasets.ImageFolder(val_dir, transform=transform),
-    batch_size=32
-)
-def train_model(model, train_loader, val_loader, criterion, optimizer, epochs=5):
-    model.train()  # Set model to training mode
-    for epoch in range(epochs):
-        total_loss, total_acc = 0, 0
-
-        for images, labels in train_loader:
-            optimizer.zero_grad()  # Reset gradients
-            outputs = model(images)
-            loss = criterion(outputs, labels)  # Compute loss
-            loss.backward()  # Backpropagation
-            optimizer.step()  # Update weights
-
-            # Compute accuracy
-            _, preds = torch.max(outputs, 1)
-            acc = (preds == labels).sum().item() / len(labels)
-
-            total_loss += loss.item()
-            total_acc += acc
-
-        print(f"Epoch {epoch+1}/{epochs}, Loss: {total_loss/len(train_loader)}, Accuracy: {total_acc/len(train_loader)}")
-
-    # Save the trained model
-    save_path='model.pt'
-    torch.save(model.state_dict(), save_path)  # Save model weights
-    print(f'Model saved to {save_path}')
-    
-
-
-# %%
-# Call the training function
-train_model(model, train_loader, val_loader, criterion, optimizer, epochs=5)
-
-
-# %%
-
-model.load_state_dict(torch.load(save_path, weights_only=True))
-model.eval()
-
-# %%
 import os
-import torch
-from torchvision import transforms
+import streamlit as st
 from PIL import Image
-import numpy as np
+import torch
+import torchvision.transforms as transforms
+import matplotlib.pyplot as plt
 
-# Define the transformation (same as used in training)
+# Load the best_model (if saved)
+best_model_path = 'C:/Dataset/vehicleClass/models/best_model.pth'  # Re-instantiate your model
+best_model = ...  # Re-instantiate your model class here
+best_model.load_state_dict(torch.load(best_model_path))
+best_model = best_model.to(device)
+best_model.eval()
+
+# Define the transform (same as used for training)
 transform = transforms.Compose([
-    transforms.Resize((224, 224)),  # Resize images to the input size of your model
+    transforms.Resize(224),
+    transforms.CenterCrop(224),
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalization
+    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 ])
 
-# Load your trained model
-model = models.resnet50(pretrained=False)  # Load the model without pretrained weights
-model.fc = nn.Linear(model.fc.in_features, num_classes)  # Replace the final layer
-model.load_state_dict(torch.load('model.pt'))  # Load trained weights
-model.eval()  # Set the model to evaluation mode
+# Streamlit application layout
+st.title("Vehicle Classification")
+st.write("Upload your vehicle image below:")
 
-# Function to make predictions for images in a single folder
-def predict_from_folder(model, folder_path):
-    predictions = []
-    file_names = []
+# File uploader for image
+uploaded_file = st.file_uploader("Choose an image...", type=["png", "jpg", "jpeg"])
 
-    with torch.no_grad():  # Disable gradient calculation
-        for file_name in os.listdir(folder_path):
-            if file_name.endswith(('.jpg', '.png', '.jpeg')):  # Check for image files
-                img_path = os.path.join(folder_path, file_name)  # Construct the full path
-                image = Image.open(img_path)  # Open the image
-                image = transform(image).unsqueeze(0)  # Apply transformation and add batch dimension
-                
-                image = image.to(device)  # Move image to the GPU if available
-                output = model(image)  # Get model predictions
-                _, pred = torch.max(output, 1)  # Get the predicted class
+# Process the uploaded image
+if uploaded_file is not None:
+    # Load and transform the image
+    img = Image.open(uploaded_file).convert("RGB")
+    img_tensor = transform(img).unsqueeze(0).to(device)  # Add batch dimension and move to GPU
 
-                predictions.append(pred.item())  # Store the predicted class index
-                file_names.append(file_name)  # Store the filename for reference
+    # Make prediction
+    with torch.no_grad():
+        output = best_model(img_tensor)
+        _, pred = torch.max(output, 1)
+        predicted_label = class_names[pred.item()]  # Store the predicted class name
 
-    return file_names, predictions
+    # Display the image and prediction
+    st.image(img, caption='Uploaded Image', use_column_width=True)
+    st.write(f"Predicted Class: {predicted_label}")
 
-# Use the function to make predictions
-file_names, predictions = predict_from_folder(model, test_dir)
+# Run the Streamlit app by executing: streamlit run your_script.py
 
-# Display the predictions
-for file_name, pred in zip(file_names, predictions):
-    print(f"File: {file_name}, Predicted Class: {pred}")
-
-
-# %%
-class ConvolutionalNetwork(LightningModule):
-    
-    def __init__(self):
-        super(ConvolutionalNetwork, self).__init__()
-        self.conv1 = nn.Conv2d(3, 6, 3, 1)
-        self.conv2 = nn.Conv2d(6, 16, 3, 1)
-        self.fc1 = nn.Linear(16 * 54 * 54, 120)
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 20)
-        self.fc4 = nn.Linear(20, len(class_names))
-
-    def forward(self, X):
-        X = F.relu(self.conv1(X))
-        X = F.max_pool2d(X, 2, 2)
-        X = F.relu(self.conv2(X))
-        X = F.max_pool2d(X, 2, 2)
-        X = X.view(-1, 16 * 54 * 54)
-        X = F.relu(self.fc1(X))
-        X = F.relu(self.fc2(X))
-        X = F.relu(self.fc3(X))
-        X = self.fc4(X)
-        return F.log_softmax(X, dim=1)
-
-    def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=0.001)
-        return optimizer
-
-    def training_step(self, train_batch, batch_idx):
-        X, y = train_batch
-        y_hat = self(X)
-        loss = F.cross_entropy(y_hat, y)
-        pred = y_hat.argmax(dim=1, keepdim=True)
-        acc = pred.eq(y.view_as(pred)).sum().item() / y.shape[0]
-        self.log("train_loss", loss)
-        self.log("train_acc", acc)
-        return loss
-
-    def validation_step(self, val_batch, batch_idx):
-        X, y = val_batch
-        y_hat = self(X)
-        loss = F.cross_entropy(y_hat, y)
-        pred = y_hat.argmax(dim=1, keepdim=True)
-        acc = pred.eq(y.view_as(pred)).sum().item() / y.shape[0]
-        self.log("val_loss", loss)
-        self.log("val_acc", acc)
-
-    def test_step(self, test_batch, batch_idx):
-        X, y = test_batch
-        y_hat = self(X)
-        loss = F.cross_entropy(y_hat, y)
-        pred = y_hat.argmax(dim=1, keepdim=True)
-        acc = pred.eq(y.view_as(pred)).sum().item() / y.shape[0]
-        self.log("test_loss", loss)
-        self.log("test_acc", acc)
-
-# %% [markdown]
-# # Fit model
-
-# %%
-dataset = ImageDataset(path_label)
-dataset.setup() 
-train_dataloader = dataset.train_dataloader
-val_dataloader = dataset.val_dataloader
-
-datamodule = DataModule()
-datamodule.setup() 
-model = ConvolutionalNetwork()
-
-trainer = pl.Trainer(max_epochs=30)
-trainer.fit(model, datamodule)
-val_loader = datamodule.val_dataloader()
-trainer.test(dataloaders=val_loader)
-
-# %%
-for images, labels in datamodule.val_dataloader():
-    break
-im=make_grid(images,nrow=8)
-
-plt.figure(figsize=(12,12))
-plt.imshow(np.transpose(im.numpy(),(1,2,0)))
-
-inv_normalize=transforms.Normalize(mean=[-0.485/0.229,-0.456/0.224,-0.406/0.225],
-                                   std=[1/0.229,1/0.224,1/0.225])
-im=inv_normalize(im)
-
-plt.figure(figsize=(12,12))
-plt.imshow(np.transpose(im.numpy(),(1,2,0)))
-
-# %%
-device = torch.device("cpu")   #"cuda:0"
-
-model.eval()
-y_true=[]
-y_pred=[]
-with torch.no_grad():
-    for test_data in datamodule.val_dataloader():
-        test_images, test_labels = test_data[0].to(device), test_data[1].to(device)
-        pred = model(test_images).argmax(dim=1)
-        for i in range(len(pred)):
-            y_true.append(test_labels[i].item())
-            y_pred.append(pred[i].item())
-
-print(classification_report(y_true,y_pred,target_names=class_names,digits=4))
-
-# %% [markdown]
-# # Predict Val as Test 
-
-# %%
-tdataset = ImageDataset(tpath_label)
-tdataset.setup(stage='Test') 
-test_dataloader = tdataset.test_dataloader
-
-datamodule = DataModule()
-datamodule.setup(stage='Test') 
-test_loader = datamodule.test_dataloader()
-
-trainer.test(dataloaders=test_loader)
-
-# %%
-device = torch.device("cpu")   #"cuda:0"
-
-model.eval()
-ty_true=[]
-ty_pred=[]
-with torch.no_grad():
-    for test_data in datamodule.test_dataloader():
-        test_images, test_labels = test_data[0].to(device), test_data[1].to(device)
-        pred = model(test_images).argmax(dim=1)
-        for i in range(len(pred)):
-            ty_true.append(test_labels[i].item())
-            ty_pred.append(pred[i].item())
-
-print(classification_report(ty_true,ty_pred,target_names=class_names,digits=4))
-
-# %%
-
-
-# %%
-
-
-# %%
 
 
 
