@@ -5,7 +5,6 @@
 # The train folder and test folder are separated. The former is used to fit the model, and the latter is used to predict. The stage=Test setting has been added in ImageDataset and DataModule.
 
 # %%
-pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
 import os
 import random
 import pandas as pd
