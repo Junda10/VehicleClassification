@@ -66,6 +66,9 @@ transform = transforms.Compose([
 st.title("Vehicle Classification App")
 st.write("Upload an image of a vehicle to classify it.")
 
+# Prepare to store predictions and images
+predicted_labels = []
+
 # File uploader for image
 uploaded_file = st.file_uploader("Choose an image...", type=['png', 'jpg', 'jpeg'])
 
@@ -86,4 +89,3 @@ if uploaded_file is not None:
     # Display prediction
     st.write(f"Predicted Class: {predicted_label}")
 
-# To run this app, save it as 'app.py' and use the command: streamlit run app.py
