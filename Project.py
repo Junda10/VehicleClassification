@@ -7,40 +7,40 @@ import matplotlib.pyplot as plt
 from torchvision import models
 import pandas as pd
 
-train_dir = '../vehicleClass/train/'
-val_dir = '../vehicleClass/val/'
-classes = []
-paths = []
+train_dir='../vehicleClass/train/'
+val_dir='../vehicleClass/val/'
+test_dir='../vehicleClass/test'
 
+classes=[]
+paths=[]
 for dirname, _, filenames in os.walk(train_dir):
     for filename in filenames:
-        classes += [dirname.split('/')[-1]]
-        paths += [(os.path.join(dirname, filename))]
-
-tclasses = []
-tpaths = []
-
+        classes+=[dirname.split('/')[-1]]
+        paths+=[(os.path.join(dirname, filename))]
+        
+tclasses=[]
+tpaths=[]
 for dirname, _, filenames in os.walk(val_dir):
     for filename in filenames:
-        tclasses += [dirname.split('/')[-1]]
-        tpaths += [(os.path.join(dirname, filename))]
+        tclasses+=[dirname.split('/')[-1]]
+        tpaths+=[(os.path.join(dirname, filename))]
+        
+#Creating Class Name Mappings
+N=list(range(len(classes)))
+class_names=sorted(set(classes))
+normal_mapping=dict(zip(class_names,N)) 
+reverse_mapping=dict(zip(N,class_names))       
 
-# Creating Class Name Mappings
-N = list(range(len(classes)))
-class_names = sorted(set(classes))
-normal_mapping = dict(zip(class_names, N))
-reverse_mapping = dict(zip(N, class_names))
+#Creating DataFrames with Paths, Classes, and Labels
+data=pd.DataFrame(columns=['path','class','label'])
+data['path']=paths
+data['class']=classes
+data['label']=data['class'].map(normal_mapping)
 
-# Creating DataFrames with Paths, Classes, and Labels
-data = pd.DataFrame(columns=['path', 'class', 'label'])
-data['path'] = paths
-data['class'] = classes
-data['label'] = data['class'].map(normal_mapping)
-
-tdata = pd.DataFrame(columns=['path', 'class', 'label'])
-tdata['path'] = tpaths
-tdata['class'] = tclasses
-tdata['label'] = tdata['class'].map(normal_mapping)
+tdata=pd.DataFrame(columns=['path','class','label'])
+tdata['path']=tpaths
+tdata['class']=tclasses
+tdata['label']=tdata['class'].map(normal_mapping)
 
 # Check if GPU is available
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -71,14 +71,15 @@ predicted_labels = []
 
 # File uploader for image
 uploaded_file = st.file_uploader("Choose an image...", type=['png', 'jpg', 'jpeg'])
+
 if uploaded_file is not None:
     # Load the image
     image = Image.open(uploaded_file).convert("RGB")
     st.image(image, caption="Uploaded Image", use_column_width=True)
-    
+
     # Preprocess the image
     img_tensor = transform(image).unsqueeze(0).to(device)
-    
+
     # Make prediction
     with torch.no_grad():
         output = best_model(img_tensor)
@@ -89,4 +90,5 @@ if uploaded_file is not None:
     if len(predicted_labels) > 0:
         st.write(f"Predicted Class: {predicted_labels[-1]}")
     else:
-        st.write("No predictions available yet.")
+        st.write("No predictions available yet."
+
