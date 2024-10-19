@@ -3,7 +3,6 @@ import os
 import torch
 from torchvision import transforms
 from PIL import Image
-import matplotlib.pyplot as plt
 from torchvision import models
 import pandas as pd
 
@@ -14,33 +13,33 @@ classes=[]
 paths=[]
 for dirname, _, filenames in os.walk(train_dir):
     for filename in filenames:
-        classes+=[dirname.split('/')[-1]]
-        paths+=[(os.path.join(dirname, filename))]
+        classes.append(dirname.split('/')[-1])
+        paths.append(os.path.join(dirname, filename))
         
 tclasses=[]
 tpaths=[]
 for dirname, _, filenames in os.walk(val_dir):
     for filename in filenames:
-        tclasses+=[dirname.split('/')[-1]]
-        tpaths+=[(os.path.join(dirname, filename))]
+        tclasses.append(dirname.split('/')[-1])
+        tpaths.append(os.path.join(dirname, filename))
         
-#Creating Class Name Mappings
-N=list(range(len(classes)))
-class_names=sorted(set(classes))
-print(class_names)
-normal_mapping=dict(zip(class_names,N)) 
-reverse_mapping=dict(zip(N,class_names))       
+# Creating Class Name Mappings
+N = list(range(len(classes)))
+class_names = sorted(set(classes))
+st.write(f"Class Names: {class_names}")  # Print class names for debugging
+normal_mapping = dict(zip(class_names, N)) 
+reverse_mapping = dict(zip(N, class_names))       
 
-#Creating DataFrames with Paths, Classes, and Labels
-data=pd.DataFrame(columns=['path','class','label'])
-data['path']=paths
-data['class']=classes
-data['label']=data['class'].map(normal_mapping)
+# Creating DataFrames with Paths, Classes, and Labels
+data = pd.DataFrame(columns=['path','class','label'])
+data['path'] = paths
+data['class'] = classes
+data['label'] = data['class'].map(normal_mapping)
 
-tdata=pd.DataFrame(columns=['path','class','label'])
-tdata['path']=tpaths
-tdata['class']=tclasses
-tdata['label']=tdata['class'].map(normal_mapping)
+tdata = pd.DataFrame(columns=['path','class','label'])
+tdata['path'] = tpaths
+tdata['class'] = tclasses
+tdata['label'] = tdata['class'].map(normal_mapping)
 
 # Check if GPU is available
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -48,7 +47,7 @@ st.write(f"Using device: {device}")
 
 # Load the model
 best_model = models.resnet50(pretrained=False)
-num_classes = 10
+num_classes = len(class_names)  # Use the actual number of classes
 best_model.fc = torch.nn.Linear(best_model.fc.in_features, num_classes)
 best_model.load_state_dict(torch.load('best_model.pth', map_location=device))
 best_model = best_model.to(device)
@@ -66,7 +65,7 @@ transform = transforms.Compose([
 st.title("Vehicle Classification App")
 st.write("Upload an image of a vehicle to classify it.")
 
-# Prepare to store predictions and images
+# Prepare to store predictions
 predicted_labels = []
 
 # File uploader for image
@@ -83,12 +82,13 @@ if uploaded_file is not None:
     # Make prediction
     with torch.no_grad():
         output = best_model(img_tensor)
+        st.write(f"Model Output: {output}")  # Print the model's output
         _, pred = torch.max(output, 1)
-        predicted_labels.append(class_names[pred.item()])
+        predicted_label = class_names[pred.item()]  # Get the predicted class name
+        predicted_labels.append(predicted_label)  # Store predicted label
 
     # Ensure index is within range
     if len(predicted_labels) > 0:
         st.write(f"Predicted Class: {predicted_labels[-1]}")
     else:
         st.write("No predictions available yet.")
-
