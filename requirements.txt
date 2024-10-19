@@ -1,7 +1,6 @@
 -f https://data.pyg.org/whl/torch-2.4.0+cpu.html
 torch-scatter
-altair==5.4.1
-attrs==24.2.0
+torchvision==0.20.0
 blinker==1.8.2
 cachetools==5.5.0
 certifi==2024.8.30
