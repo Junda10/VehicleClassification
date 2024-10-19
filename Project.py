@@ -9,7 +9,6 @@ import pandas as pd
 
 train_dir = '../vehicleClass/train/'
 val_dir = '../vehicleClass/val/'
-test_dir = '../vehicleClass/test'
 classes = []
 paths = []
 
