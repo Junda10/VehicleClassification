@@ -1,9 +1,10 @@
 -f https://data.pyg.org/whl/torch-2.4.0+cpu.html
 torch-scatter
-streamlit==1.39.0
-torch==2.4.1
-torchvision==0.20.0
+streamlit==1.21.0
+torch==2.0.1
+torchvision==0.15.2
 Pillow==10.0.0
-matplotlib==3.9.2
+matplotlib==3.7.1
+
 
 
