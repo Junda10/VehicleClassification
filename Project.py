@@ -62,7 +62,7 @@ transform = transforms.Compose([
 
 # Streamlit application
 st.title("Vehicle Classification App")
-st.write(f"This App is available to classify the vehicle into these classes: {class_names}")  # Print class names for debugging
+st.write(f"This App is able to classify the vehicle into these classes: {class_names}")  # Print class names for debugging
 st.write("Upload an image of a vehicle to classify it.")
 
 # Prepare to store predictions
