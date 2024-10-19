@@ -84,7 +84,8 @@ if uploaded_file is not None:
     with torch.no_grad():
         output = best_model(img_tensor)
         _, pred = torch.max(output, 1)
-        predicted_labels.append(class_names[pred.item()])
+        predicted_label = class_names[pred.item()]  # Get the predicted class name
+        predicted_labels.append(predicted_label)  # Store predicted label for future use
 
     # Display prediction
     st.write(f"Predicted Class: {predicted_label}")
