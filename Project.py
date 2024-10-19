@@ -6,8 +6,8 @@ from PIL import Image
 from torchvision import models
 import pandas as pd
 
-train_dir='../vehicleClass/train/'
-val_dir='../vehicleClass/val/'
+train_dir='vehicleClass/train/'
+val_dir='vehicleClass/val/'
 
 classes=[]
 paths=[]
