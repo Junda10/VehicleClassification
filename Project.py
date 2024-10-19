@@ -26,7 +26,6 @@ for dirname, _, filenames in os.walk(val_dir):
 # Creating Class Name Mappings
 N = list(range(len(classes)))
 class_names = sorted(set(classes))
-st.write(f"Class Names: {class_names}")  # Print class names for debugging
 normal_mapping = dict(zip(class_names, N)) 
 reverse_mapping = dict(zip(N, class_names))       
 
@@ -63,6 +62,7 @@ transform = transforms.Compose([
 
 # Streamlit application
 st.title("Vehicle Classification App")
+st.write(f"This App is available to classify the vehicle into these classes: {class_names}")  # Print class names for debugging
 st.write("Upload an image of a vehicle to classify it.")
 
 # Prepare to store predictions
@@ -82,7 +82,6 @@ if uploaded_file is not None:
     # Make prediction
     with torch.no_grad():
         output = best_model(img_tensor)
-        st.write(f"Model Output: {output}")  # Print the model's output
         _, pred = torch.max(output, 1)
         predicted_label = class_names[pred.item()]  # Get the predicted class name
         predicted_labels.append(predicted_label)  # Store predicted label
