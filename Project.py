@@ -7,9 +7,9 @@ import matplotlib.pyplot as plt
 from torchvision import models
 import pandas as pd
 
-train_dir='C:/Dataset/vehicleClass/train/'
-val_dir='C:/Dataset/vehicleClass/val/'
-test_dir='C:/Dataset/vehicleClass/test'
+train_dir='/vehicleClass/train/'
+val_dir='/vehicleClass/val/'
+test_dir='/vehicleClass/test'
 
 classes=[]
 paths=[]
@@ -50,7 +50,7 @@ st.write(f"Using device: {device}")
 best_model = models.resnet50(pretrained=False)
 num_classes = 10
 best_model.fc = torch.nn.Linear(best_model.fc.in_features, num_classes)
-best_model.load_state_dict(torch.load('C:/Dataset/vehicleClass/models/best_model.pth', map_location=device))
+best_model.load_state_dict(torch.load('best_model.pth', map_location=device))
 best_model = best_model.to(device)
 best_model.eval()
 
