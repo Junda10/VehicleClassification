@@ -18,7 +18,7 @@ import pytorch_lightning as pl
 import matplotlib.pyplot as plt
 from sklearn.metrics import classification_report
 from PIL import Image
-pip install torch-scatter -f https://data.pyg.org/whl/torch-1.13.0+${cu124}.html
+os.system('pip install torch-scatter -f https://data.pyg.org/whl/torch-1.13.0+${cu124}.html')
 
 # Check if GPU is available
 if torch.cuda.is_available():
