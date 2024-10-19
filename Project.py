@@ -15,7 +15,6 @@ from torchvision.utils import make_grid
 from pytorch_lightning import LightningModule
 import pytorch_lightning as pl
 import matplotlib.pyplot as plt
-%matplotlib inline
 from sklearn.metrics import classification_report
 from PIL import Image
 
