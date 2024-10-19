@@ -9,7 +9,7 @@
 import os
 import random
 import pandas as pd
-os.system('pip install torch-scatter -f https://data.pyg.org/whl/torch-1.13.0+${cu124}.html')
+os.system('pip install torch-scatter -f https://data.pyg.org/whl/torch-1.13.0+${cpu}.html')
 import torch
 import torch.nn.functional as F
 from torchvision import transforms 
