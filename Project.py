@@ -6,6 +6,41 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from torchvision import models
 
+train_dir='C:/Dataset/vehicleClass/train/'
+val_dir='C:/Dataset/vehicleClass/val/'
+test_dir='C:/Dataset/vehicleClass/test'
+
+classes=[]
+paths=[]
+for dirname, _, filenames in os.walk(train_dir):
+    for filename in filenames:
+        classes+=[dirname.split('/')[-1]]
+        paths+=[(os.path.join(dirname, filename))]
+        
+tclasses=[]
+tpaths=[]
+for dirname, _, filenames in os.walk(val_dir):
+    for filename in filenames:
+        tclasses+=[dirname.split('/')[-1]]
+        tpaths+=[(os.path.join(dirname, filename))]
+        
+#Creating Class Name Mappings
+N=list(range(len(classes)))
+class_names=sorted(set(classes))
+normal_mapping=dict(zip(class_names,N)) 
+reverse_mapping=dict(zip(N,class_names))       
+
+#Creating DataFrames with Paths, Classes, and Labels
+data=pd.DataFrame(columns=['path','class','label'])
+data['path']=paths
+data['class']=classes
+data['label']=data['class'].map(normal_mapping)
+
+tdata=pd.DataFrame(columns=['path','class','label'])
+tdata['path']=tpaths
+tdata['class']=tclasses
+tdata['label']=tdata['class'].map(normal_mapping)
+
 # Check if GPU is available
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 st.write(f"Using device: {device}")
@@ -25,9 +60,6 @@ transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 ])
-
-# Load class names
-class_names = sorted(os.listdir('C:/Dataset/vehicleClass/test/'))  # Ensure this matches your class folder names
 
 # Streamlit application
 st.title("Vehicle Classification App")
