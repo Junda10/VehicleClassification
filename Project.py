@@ -9,7 +9,6 @@ import pandas as pd
 
 train_dir='../vehicleClass/train/'
 val_dir='../vehicleClass/val/'
-test_dir='../vehicleClass/test'
 
 classes=[]
 paths=[]
@@ -28,6 +27,7 @@ for dirname, _, filenames in os.walk(val_dir):
 #Creating Class Name Mappings
 N=list(range(len(classes)))
 class_names=sorted(set(classes))
+print(class_names)
 normal_mapping=dict(zip(class_names,N)) 
 reverse_mapping=dict(zip(N,class_names))       
 
