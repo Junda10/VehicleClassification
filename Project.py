@@ -42,6 +42,16 @@ tdata['path']=tpaths
 tdata['class']=tclasses
 tdata['label']=tdata['class'].map(normal_mapping)
 
+transform=transforms.Compose([
+        #transforms.RandomRotation(10),      # rotate +/- 10 degrees
+        transforms.RandomHorizontalFlip(),  # reverse 50% of images
+        transforms.Resize(224),             # resize shortest side to 224 pixels
+        transforms.CenterCrop(224),         # crop longest side to 224 pixels at center
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406],
+                             [0.229, 0.224, 0.225])
+])
+
 # Check if GPU is available
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 st.write(f"Using device: {device}")
@@ -84,8 +94,7 @@ if uploaded_file is not None:
     with torch.no_grad():
         output = best_model(img_tensor)
         _, pred = torch.max(output, 1)
-        predicted_label = class_names[pred.item()]  # Get the predicted class name
-        predicted_labels.append(predicted_label)  # Store predicted label for future use
+        predicted_labels.append(class_names[pred.item()])
 
     # Display prediction
     st.write(f"Predicted Class: {predicted_label}")
