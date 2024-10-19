@@ -5,6 +5,7 @@ from torchvision import transforms
 from PIL import Image
 import matplotlib.pyplot as plt
 from torchvision import models
+import pandas as pd
 
 train_dir='C:/Dataset/vehicleClass/train/'
 val_dir='C:/Dataset/vehicleClass/val/'
