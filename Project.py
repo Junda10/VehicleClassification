@@ -1,108 +1,137 @@
 import streamlit as st
 import os
 import torch
-from torchvision import transforms
+from torchvision import transforms, models
 from PIL import Image
-from torchvision import models
 import pandas as pd
-import time  # To generate unique filenames
+import time  # For generating unique filenames
 import torch.nn.functional as F  # For softmax
+import requests  # For uploading to GitHub
+import base64  # For encoding image files
 
-# Directories for training data and storing predictions
+# ===== Directories for training data and predictions =====
 train_dir = 'vehicleClass/train/'
 predictions_dir = 'vehicleClass/predictions/'
+os.makedirs(predictions_dir, exist_ok=True)  # Create the predictions directory if not exists
 
-# Create the predictions directory if it doesn't exist
-os.makedirs(predictions_dir, exist_ok=True)
-
-# Create class and path mappings
+# ===== Class and Path Mapping =====
 classes = []
 paths = []
 for dirname, _, filenames in os.walk(train_dir):
     for filename in filenames:
-        classes.append(dirname.split('/')[-1])  # Get class name from directory name
+        classes.append(dirname.split('/')[-1])  # Get class name from folder name
         paths.append(os.path.join(dirname, filename))  # Get file path
 
-# Create Class Name Mappings
-class_names = sorted(set(classes))
+class_names = sorted(set(classes))  # Get unique class names
 normal_mapping = {name: index for index, name in enumerate(class_names)}
 
-# Creating DataFrame with Paths, Classes, and Labels
+# Create DataFrame with file paths and labels
 data = pd.DataFrame({'path': paths, 'class': classes})
 data['label'] = data['class'].map(normal_mapping)
 
-# Check if GPU is available
+# ===== Check Device Availability =====
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Streamlit application
+# ===== Streamlit App Header =====
 st.title("Vehicle Classification App")
-st.write(f"This App is able to classify the vehicle into these classes: {class_names}")  # Print class names for debugging
-st.write("Upload an image of a vehicle to classify it.")
+st.write(f"Classify vehicles into these categories: {class_names}")
+st.write("Upload an image of a vehicle to begin.")
 
-# Model selection dropdown
+# ===== Model Selection =====
 model_options = {
     "ResNet50 (Frozen Layers) 93.5%": "best_model.pth",
     "ResNet50 (Unfrozen Layers) 98.0%": "best_model_unfreeze.pth"
 }
 selected_model = st.selectbox("Select Model:", list(model_options.keys()))
 
-# Load the model based on user selection
+# ===== Load Selected Model =====
 model_path = model_options[selected_model]
 best_model = models.resnet50(pretrained=True)
-num_classes = len(class_names)  # Use the actual number of classes
-best_model.fc = torch.nn.Linear(best_model.fc.in_features, num_classes)
+best_model.fc = torch.nn.Linear(best_model.fc.in_features, len(class_names))  # Update final layer
 
-# Load the corresponding model weights
 best_model.load_state_dict(torch.load(model_path, map_location=device))
 best_model = best_model.to(device)
 best_model.eval()
 
-# Define image transformation
+# ===== Image Transformations =====
 transform = transforms.Compose([
-    transforms.RandomRotation(10),      # Rotate +/- 10 degrees
-    transforms.RandomHorizontalFlip(),  # Flip 50% of images
-    transforms.Resize(224),             # Resize shortest side to 224 pixels
-    transforms.CenterCrop(224),         # Crop longest side to 224 pixels at center
+    transforms.RandomRotation(10),  # Rotate +/- 10 degrees
+    transforms.RandomHorizontalFlip(),  # 50% chance to flip horizontally
+    transforms.Resize(224),  # Resize shortest side to 224 pixels
+    transforms.CenterCrop(224),  # Crop center to 224x224 pixels
     transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406],
-                         [0.229, 0.224, 0.225])
+    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 ])
 
-# File uploader for image
+# ===== File Uploader for Image =====
 uploaded_file = st.file_uploader("Choose an image...", type=['png', 'jpg', 'jpeg'])
 
 if uploaded_file is not None:
-    # Load the image
+    # Load and display the uploaded image
     image = Image.open(uploaded_file).convert("RGB")
     st.image(image, caption="Uploaded Image", use_column_width=True)
 
     # Preprocess the image
     img_tensor = transform(image).unsqueeze(0).to(device)
 
-    # Make prediction
+    # Predict the class
     with torch.no_grad():
         output = best_model(img_tensor)
-        probabilities = F.softmax(output, dim=1)  # Apply softmax to get probabilities
-        max_prob, pred = torch.max(probabilities, 1)  # Get the highest probability and corresponding index
+        probabilities = F.softmax(output, dim=1)  # Get probabilities
+        max_prob, pred = torch.max(probabilities, 1)  # Get max probability and prediction index
 
-    # Set thresholds for recognizing "Unknown" and "Not a Vehicle"
-    unknown_threshold = 0.6  # Below this, we mark as unknown
-    not_vehicle_threshold = 0.3  # Below this, we assume it's not a vehicle
+    # Thresholds for classification
+    unknown_threshold = 0.6
+    not_vehicle_threshold = 0.3
 
-    # Determine the predicted label based on confidence levels
+    # Determine predicted label based on confidence
     if max_prob.item() < not_vehicle_threshold:
         predicted_label = "This is not a vehicle."
     elif max_prob.item() < unknown_threshold:
         predicted_label = "Unknown vehicle."
     else:
-        predicted_label = class_names[pred.item()]  # Get the predicted class name
+        predicted_label = class_names[pred.item()]
 
-    st.write(f"Predicted Class: {predicted_label}")  # Display predicted label
+    # Display predicted label
+    st.write(f"Predicted Class: {predicted_label}")
 
-    # Save the image with prediction
-    timestamp = int(time.time())  # Use timestamp to ensure unique filenames
+    # Save the prediction image locally
+    timestamp = int(time.time())  # Unique timestamp for filenames
     filename = f"{predicted_label.replace(' ', '_')}_{timestamp}.jpg"
     save_path = os.path.join(predictions_dir, filename)
     image.save(save_path)
-    st.write(f"Saving image to: {save_path}")
+
+# ===== Function to Upload to GitHub =====
+def upload_to_github(file_path, repo, branch, token):
+    """Upload the saved image to GitHub."""
+    with open(file_path, 'rb') as f:
+        content = base64.b64encode(f.read()).decode('utf-8')
+
+    url = f"https://api.github.com/repos/{repo}/contents/{os.path.basename(file_path)}"
+
+    headers = {
+        "Authorization": f"token {token}",
+        "Accept": "application/vnd.github.v3+json"
+    }
+
+    data = {
+        "message": "Upload prediction image",  # Commit message
+        "content": content,
+        "branch": branch
+    }
+    
+    response = requests.put(url, headers=headers, json=data)
+
+    if response.status_code == 201:
+        st.write("File successfully uploaded to GitHub.")
+    else:
+        st.write(f"Failed to upload: {response.json()}")
+
+    # Upload the image to GitHub
+    upload_to_github(
+        file_path=save_path,
+        repo="Junda10/VehicleClassification",  # Replace with your repo
+        branch="main",  # Replace with the correct branch
+        token="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"  # Replace with your GitHub token
+    )
 
