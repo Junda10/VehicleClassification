@@ -86,16 +86,17 @@ if uploaded_file is not None:
         max_prob, pred = torch.max(probabilities, 1)  # Get the highest probability and corresponding index
 
     # Set thresholds for recognizing "Unknown" and "Not a Vehicle"
-    unknown_threshold = 0.6  # Below this, we mark as unknown
-    not_vehicle_threshold = 0.3  # Below this, we assume it's not a vehicle
+    unknown_threshold = 0.3  # Below this, we mark as unknown
+    not_vehicle_threshold = 0.2  # Below this, we assume it's not a vehicle
 
     # Determine the predicted label based on confidence levels
-    #if max_prob.item() < not_vehicle_threshold:
-    #    predicted_label = "This is not a vehicle."
-    #elif max_prob.item() < unknown_threshold:
-    #    predicted_label = "Unknown vehicle."
-    #else:
-    predicted_label = class_names[pred.item()]  # Get the predicted class name
+    if max_prob.item() < not_vehicle_threshold:
+        predicted_label = "This is not a vehicle."
+    elif max_prob.item() < unknown_threshold:
+        predicted_label = "Unknown vehicle."
+    else:
+        predicted_label = class_names[pred.item()]  # Get the predicted class name
+    
     st.write(f"Threshold: {max_prob.item()}")
     st.write(f"Predicted Class: {predicted_label}")  # Display predicted label
 
