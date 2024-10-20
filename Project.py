@@ -5,9 +5,14 @@ from torchvision import transforms
 from PIL import Image
 from torchvision import models
 import pandas as pd
+import time  # To generate unique filenames
 
-# Directories for training data
+# Directories for training data and storing predictions
 train_dir = 'vehicleClass/train/'
+predictions_dir = 'vehicleClass/predictions/'
+
+# Create the predictions directory if it doesn't exist
+os.makedirs(predictions_dir, exist_ok=True)
 
 # Create class and path mappings
 classes = []
@@ -80,3 +85,10 @@ if uploaded_file is not None:
         predicted_label = class_names[pred.item()]  # Get the predicted class name
 
     st.write(f"Predicted Class: {predicted_label}")  # Display predicted label
+
+    # Save the image with prediction
+    timestamp = int(time.time())  # Use timestamp to ensure unique filenames
+    filename = f"{predicted_label}_{timestamp}.jpg"
+    save_path = os.path.join(predictions_dir, filename)
+    image.save(save_path)
+
