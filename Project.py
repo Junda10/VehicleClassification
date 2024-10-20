@@ -104,5 +104,5 @@ if uploaded_file is not None:
     filename = f"{predicted_label.replace(' ', '_')}_{timestamp}.jpg"
     save_path = os.path.join(predictions_dir, filename)
     image.save(save_path)
-
+    st.write(f"Saving image to: {save_path}")
 
