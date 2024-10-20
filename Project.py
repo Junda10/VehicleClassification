@@ -81,8 +81,8 @@ if uploaded_file is not None:
         max_prob, pred = torch.max(probabilities, 1)  # Get max probability and prediction index
 
     # Thresholds for classification
-    unknown_threshold = 0.4
-    not_vehicle_threshold = 0.2
+    unknown_threshold = 0.3
+    not_vehicle_threshold = 0.1
 
     # Determine predicted label based on confidence
     if max_prob.item() < not_vehicle_threshold:
