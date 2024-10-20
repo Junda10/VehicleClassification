@@ -6,6 +6,7 @@ from PIL import Image
 from torchvision import models
 import pandas as pd
 import time  # To generate unique filenames
+import torch.nn.functional as F  # For softmax
 
 # Directories for training data and storing predictions
 train_dir = 'vehicleClass/train/'
@@ -24,7 +25,7 @@ for dirname, _, filenames in os.walk(train_dir):
 
 # Create Class Name Mappings
 class_names = sorted(set(classes))
-normal_mapping = {name: index for index, name in enumerate(class_names)} 
+normal_mapping = {name: index for index, name in enumerate(class_names)}
 
 # Creating DataFrame with Paths, Classes, and Labels
 data = pd.DataFrame({'path': paths, 'class': classes})
@@ -38,7 +39,7 @@ model_options = {
     "ResNet50 (Frozen Layers) 93.5%": "best_model.pth",
     "ResNet50 (Unfrozen Layers) 98.0%": "best_model_unfreeze.pth"
 }
-selected_model = st.selectbox("Select Model:", list(model_options.keys()))
+
 
 # Load the model based on user selection
 model_path = model_options[selected_model]
@@ -69,7 +70,7 @@ st.write("Upload an image of a vehicle to classify it.")
 
 # File uploader for image
 uploaded_file = st.file_uploader("Choose an image...", type=['png', 'jpg', 'jpeg'])
-
+selected_model = st.selectbox("Select Model:", list(model_options.keys()))
 if uploaded_file is not None:
     # Load the image
     image = Image.open(uploaded_file).convert("RGB")
@@ -81,14 +82,26 @@ if uploaded_file is not None:
     # Make prediction
     with torch.no_grad():
         output = best_model(img_tensor)
-        _, pred = torch.max(output, 1)
+        probabilities = F.softmax(output, dim=1)  # Apply softmax to get probabilities
+        max_prob, pred = torch.max(probabilities, 1)  # Get the highest probability and corresponding index
+
+    # Set thresholds for recognizing "Unknown" and "Not a Vehicle"
+    unknown_threshold = 0.6  # Below this, we mark as unknown
+    not_vehicle_threshold = 0.3  # Below this, we assume it's not a vehicle
+
+    # Determine the predicted label based on confidence levels
+    if max_prob.item() < not_vehicle_threshold:
+        predicted_label = "This is not a vehicle."
+    elif max_prob.item() < unknown_threshold:
+        predicted_label = "Unknown vehicle."
+    else:
         predicted_label = class_names[pred.item()]  # Get the predicted class name
 
     st.write(f"Predicted Class: {predicted_label}")  # Display predicted label
 
     # Save the image with prediction
     timestamp = int(time.time())  # Use timestamp to ensure unique filenames
-    filename = f"{predicted_label}_{timestamp}.jpg"
+    filename = f"{predicted_label.replace(' ', '_')}_{timestamp}.jpg"
     save_path = os.path.join(predictions_dir, filename)
     image.save(save_path)
 
