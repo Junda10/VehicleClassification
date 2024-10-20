@@ -34,12 +34,17 @@ data['label'] = data['class'].map(normal_mapping)
 # Check if GPU is available
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+# Streamlit application
+st.title("Vehicle Classification App")
+st.write(f"This App is able to classify the vehicle into these classes: {class_names}")  # Print class names for debugging
+st.write("Upload an image of a vehicle to classify it.")
+
 # Model selection dropdown
 model_options = {
     "ResNet50 (Frozen Layers) 93.5%": "best_model.pth",
     "ResNet50 (Unfrozen Layers) 98.0%": "best_model_unfreeze.pth"
 }
-
+selected_model = st.selectbox("Select Model:", list(model_options.keys()))
 
 # Load the model based on user selection
 model_path = model_options[selected_model]
@@ -63,14 +68,9 @@ transform = transforms.Compose([
                          [0.229, 0.224, 0.225])
 ])
 
-# Streamlit application
-st.title("Vehicle Classification App")
-st.write(f"This App is able to classify the vehicle into these classes: {class_names}")  # Print class names for debugging
-st.write("Upload an image of a vehicle to classify it.")
-
 # File uploader for image
 uploaded_file = st.file_uploader("Choose an image...", type=['png', 'jpg', 'jpeg'])
-selected_model = st.selectbox("Select Model:", list(model_options.keys()))
+
 if uploaded_file is not None:
     # Load the image
     image = Image.open(uploaded_file).convert("RGB")
@@ -104,4 +104,5 @@ if uploaded_file is not None:
     filename = f"{predicted_label.replace(' ', '_')}_{timestamp}.jpg"
     save_path = os.path.join(predictions_dir, filename)
     image.save(save_path)
+
 
