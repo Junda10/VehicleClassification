@@ -90,12 +90,12 @@ if uploaded_file is not None:
     not_vehicle_threshold = 0.3  # Below this, we assume it's not a vehicle
 
     # Determine the predicted label based on confidence levels
-    if max_prob.item() < not_vehicle_threshold:
-        predicted_label = "This is not a vehicle."
-    elif max_prob.item() < unknown_threshold:
-        predicted_label = "Unknown vehicle."
-    else:
-        predicted_label = class_names[pred.item()]  # Get the predicted class name
+    #if max_prob.item() < not_vehicle_threshold:
+    #    predicted_label = "This is not a vehicle."
+    #elif max_prob.item() < unknown_threshold:
+    #    predicted_label = "Unknown vehicle."
+    #else:
+    predicted_label = class_names[pred.item()]  # Get the predicted class name
 
     st.write(f"Predicted Class: {predicted_label}")  # Display predicted label
 
