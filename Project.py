@@ -19,7 +19,6 @@ for dirname, _, filenames in os.walk(train_dir):
 
 # Create Class Name Mappings
 class_names = sorted(set(classes))
-st.write(f"Class Names: {class_names}")  # Print class names for debugging
 normal_mapping = {name: index for index, name in enumerate(class_names)} 
 
 # Creating DataFrame with Paths, Classes, and Labels
@@ -28,7 +27,6 @@ data['label'] = data['class'].map(normal_mapping)
 
 # Check if GPU is available
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-st.write(f"Using device: {device}")
 
 # Model selection dropdown
 model_options = {
