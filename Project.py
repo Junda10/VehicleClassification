@@ -96,7 +96,7 @@ if uploaded_file is not None:
     #    predicted_label = "Unknown vehicle."
     #else:
     predicted_label = class_names[pred.item()]  # Get the predicted class name
-
+    st.write(f"Threshold: {max_prob.item()}")
     st.write(f"Predicted Class: {predicted_label}")  # Display predicted label
 
 
