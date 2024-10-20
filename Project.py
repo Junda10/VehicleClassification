@@ -32,8 +32,8 @@ st.write(f"Using device: {device}")
 
 # Model selection dropdown
 model_options = {
-    "ResNet50 (Frozen Layers)": "best_model.pth",
-    "ResNet50 (Unfrozen Layers)": "best_model_unfreeze.pth"
+    "ResNet50 (Frozen Layers) 93.5%": "best_model.pth",
+    "ResNet50 (Unfrozen Layers) 98.0%": "best_model_unfreeze.pth"
 }
 selected_model = st.selectbox("Select Model:", list(model_options.keys()))
 
