@@ -7,6 +7,7 @@ from torchvision import models
 import pandas as pd
 import time  # To manage alerts
 import torch.nn.functional as F  # For softmax
+import base64
 
 # Directories for training data and storing predictions
 train_dir = 'vehicleClass/train/'
@@ -95,6 +96,20 @@ if uploaded_file is not None:
     unknown_threshold = 0.3
     not_vehicle_threshold = 0.2
 
+def autoplay_audio(file_path: str):
+    with open(file_path, "rb") as f:
+        data = f.read()
+        b64 = base64.b64encode(data).decode()
+        md = f"""
+            <audio controls autoplay="true">
+            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+            </audio>
+            """
+        st.markdown(
+            md,
+            unsafe_allow_html=True,
+        )
+        
     # Determine the prediction label
     if max_prob.item() < not_vehicle_threshold:
         predicted_label = "This is not a vehicle."
@@ -108,7 +123,7 @@ if uploaded_file is not None:
             current_time = time.time()
             if current_time - last_alert_time >= alert_interval:
                 # Play beep sound using Streamlit
-                st.audio("beep.mp3", format="audio/mp3") 
+                autoplay_audio("beep.mp3", format="audio/mp3") 
                 last_alert_time = current_time  # Update the last alert time
 
     # Display prediction and threshold
