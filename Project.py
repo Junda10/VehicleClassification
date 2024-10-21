@@ -71,8 +71,9 @@ transform = transforms.Compose([
 alert_interval = 300  # 5 minutes (in seconds)
 last_alert_time = 0  # Store the timestamp of the last alert
 
-# Define vehicle classes for alerting
-alert_classes = {"heavy truck", "truck", "bus", "racing car"}
+heavy_vehicles = ['heavy truck', 'bus', 'minibus', 'truck']
+emergency_vehicles = ['fire engine']
+normal_vehicles = ['SUV', 'family sedan', 'jeep', 'racing car', 'taxi']
 
 # File uploader for image
 uploaded_file = st.file_uploader("Choose an image...", type=['png', 'jpg', 'jpeg'])
@@ -104,12 +105,20 @@ if uploaded_file is not None:
         predicted_label = class_names[pred.item()]  # Get the class name
 
         # Check if the detected vehicle belongs to alert classes
-        if predicted_label.lower() in alert_classes:
-            current_time = time.time()
+        current_time = time.time()
+        
+        if predicted_label.lower() in heavy_vehicles:
             if current_time - last_alert_time >= alert_interval:
-                # Play beep sound using Streamlit
+                # Play beep sound for general alert
                 st.audio("beep.mp3")  # Provide the path to your sound file
                 last_alert_time = current_time  # Update the last alert time
+
+        # Check if the predicted class is a fire engine
+        if predicted_label.lower() == emergency_vehicles.lower():
+            st.audio("beep2.mp3")  # Provide the path to your fire engine sound file
+            
+        if predicted_label.lower() == normal_vehicles.lower():
+            st.audio("beep3.mp3")  # Provide the path to your fire engine sound file
 
     # Display prediction and threshold
     st.write(f"Threshold: {max_prob.item()}")
