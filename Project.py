@@ -10,10 +10,6 @@ import torch.nn.functional as F  # For softmax
 
 # Directories for training data and storing predictions
 train_dir = 'vehicleClass/train/'
-predictions_dir = 'vehicleClass/predictions/'
-
-# Create the predictions directory if it doesn't exist
-os.makedirs(predictions_dir, exist_ok=True)
 
 # Create class and path mappings
 classes = []
@@ -42,15 +38,19 @@ st.write("Upload an image of a vehicle to classify it.")
 # Model selection dropdown
 model_options = {
     "ResNet50 (Frozen Layers) 93.5%": "best_model.pth",
-    "ResNet50 (Unfrozen Layers) 98.0%": "best_model_unfreeze.pth"
+    "ResNet50 (Unfrozen Layers) 98.0%": "best_model_unfreeze.pth",
+    "VGG19 97.5%": "best_model_VGG.pth"
 }
 selected_model = st.selectbox("Select Model:", list(model_options.keys()))
 
 # Load the selected model
 model_path = model_options[selected_model]
-best_model = models.resnet50(pretrained=True)
-num_classes = len(class_names)  # Use the actual number of classes
-best_model.fc = torch.nn.Linear(best_model.fc.in_features, num_classes)
+if "VGG19" in selected_model:
+    best_model = models.vgg19(pretrained=True)
+    best_model.classifier[6] = torch.nn.Linear(best_model.classifier[6].in_features, len(class_names))
+else:  # Default to ResNet50
+    best_model = models.resnet50(pretrained=True)
+    best_model.fc = torch.nn.Linear(best_model.fc.in_features, len(class_names))
 
 # Load model weights
 best_model.load_state_dict(torch.load(model_path, map_location=device))
