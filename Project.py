@@ -38,8 +38,8 @@ st.write("Upload an image of a vehicle to classify it.")
 # Model selection dropdown
 model_options = {
     "ResNet50 (Frozen Layers) 93.5%": "best_model.pth",
-    "ResNet50 (Unfrozen Layers) 98.0%": "best_model_unfreeze.pth",
-    "VGG19 97.5%": "best_model_VGG.pth"
+    "ResNet50 (Unfrozen Layers) 98.0%": "best_model_unfreeze.pth"
+    #"VGG19 97.5%": "best_model_VGG.pth"
 }
 selected_model = st.selectbox("Select Model:", list(model_options.keys()))
 
