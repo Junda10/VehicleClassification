@@ -123,7 +123,7 @@ def autoplay_audio(file_path: str):
             current_time = time.time()
             if current_time - last_alert_time >= alert_interval:
                 # Play beep sound using Streamlit
-                autoplay_audio("beep.mp3", format="audio/mp3") 
+                autoplay_audio("beep.mp3") 
                 last_alert_time = current_time  # Update the last alert time
 
     # Display prediction and threshold
