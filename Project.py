@@ -108,10 +108,7 @@ if uploaded_file is not None:
         current_time = time.time()
         
         if predicted_label.lower() in heavy_vehicles:
-            if current_time - last_alert_time >= alert_interval:
-                # Play beep sound for general alert
-                st.audio("beep.mp3")  # Provide the path to your sound file
-                last_alert_time = current_time  # Update the last alert time
+            st.audio("beep.mp3")  # Provide the path to your sound file
 
         # Check if the predicted class is a fire engine
         if predicted_label.lower() in emergency_vehicles:
