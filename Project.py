@@ -67,10 +67,6 @@ transform = transforms.Compose([
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 ])
 
-# Alert management
-alert_interval = 300  # 5 minutes (in seconds)
-last_alert_time = 0  # Store the timestamp of the last alert
-
 heavy_vehicles = ['heavy truck', 'bus', 'minibus', 'truck']
 emergency_vehicles = ['fire engine']
 normal_vehicles = ['SUV', 'family sedan', 'jeep', 'racing car', 'taxi']
