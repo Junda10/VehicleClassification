@@ -93,7 +93,7 @@ if uploaded_file is not None:
         max_prob, pred = torch.max(probabilities, 1)
 
     # Confidence thresholds
-    unknown_threshold = 0.3
+    unknown_threshold = 0.32
     not_vehicle_threshold = 0.25
 
     # Determine the prediction label
@@ -116,7 +116,10 @@ if uploaded_file is not None:
             
         if predicted_label.lower() in normal_vehicles:
             st.audio("beep3.mp3")  # Provide the path to your fire engine sound file
-
+            
+        else:
+            st.audio("beep4.mp3")
+            
     # Display prediction and threshold
     st.write(f"Threshold: {max_prob.item()}")
     st.write(f"Predicted Class: This is {predicted_label}")
