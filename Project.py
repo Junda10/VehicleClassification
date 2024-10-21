@@ -99,8 +99,10 @@ if uploaded_file is not None:
     # Determine the prediction label
     if max_prob.item() < not_vehicle_threshold:
         predicted_label = "not a vehicle."
+        st.audio("beep4.mp3")
     elif max_prob.item() < unknown_threshold:
         predicted_label = "unknown vehicle."
+        st.audio("beep4.mp3")
     else:
         predicted_label = class_names[pred.item()]  # Get the class name
 
@@ -116,9 +118,6 @@ if uploaded_file is not None:
             
         if predicted_label.lower() in normal_vehicles:
             st.audio("beep3.mp3")  # Provide the path to your fire engine sound file
-            
-        else:
-            st.audio("beep4.mp3")
             
     # Display prediction and threshold
     st.write(f"Threshold: {max_prob.item()}")
