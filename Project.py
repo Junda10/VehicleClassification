@@ -108,7 +108,7 @@ if uploaded_file is not None:
             current_time = time.time()
             if current_time - last_alert_time >= alert_interval:
                 # Play beep sound using Streamlit
-                st.audio("beep.mp3")  # Provide the path to your sound file
+                st.audio("beep.mp3", format="audio/mp3") 
                 last_alert_time = current_time  # Update the last alert time
 
     # Display prediction and threshold
