@@ -9,6 +9,7 @@ import time  # To generate unique filenames and manage alerts
 import torch.nn.functional as F  # For softmax
 import pygame
 
+os.environ["SDL_AUDIODRIVER"] = "dsp"
 # Initialize Pygame’s mixer with proper handling
 pygame.mixer.init()  # Initialize mixer
 
