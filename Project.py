@@ -114,10 +114,10 @@ if uploaded_file is not None:
                 last_alert_time = current_time  # Update the last alert time
 
         # Check if the predicted class is a fire engine
-        if predicted_label.lower() == emergency_vehicles.lower():
+        if predicted_label.lower() in emergency_vehicles:
             st.audio("beep2.mp3")  # Provide the path to your fire engine sound file
             
-        if predicted_label.lower() == normal_vehicles.lower():
+        if predicted_label.lower() in normal_vehicles:
             st.audio("beep3.mp3")  # Provide the path to your fire engine sound file
 
     # Display prediction and threshold
