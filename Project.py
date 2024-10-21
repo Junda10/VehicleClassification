@@ -98,9 +98,9 @@ if uploaded_file is not None:
 
     # Determine the prediction label
     if max_prob.item() < not_vehicle_threshold:
-        predicted_label = "This is not a vehicle."
+        predicted_label = "not a vehicle."
     elif max_prob.item() < unknown_threshold:
-        predicted_label = "Unknown vehicle."
+        predicted_label = "unknown vehicle."
     else:
         predicted_label = class_names[pred.item()]  # Get the class name
 
@@ -119,4 +119,4 @@ if uploaded_file is not None:
 
     # Display prediction and threshold
     st.write(f"Threshold: {max_prob.item()}")
-    st.write(f"Predicted Class: This vehicle is {predicted_label}")
+    st.write(f"Predicted Class: This is {predicted_label}")
