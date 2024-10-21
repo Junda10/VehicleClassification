@@ -122,4 +122,4 @@ if uploaded_file is not None:
 
     # Display prediction and threshold
     st.write(f"Threshold: {max_prob.item()}")
-    st.write(f"Predicted Class: {predicted_label}")
+    st.write(f"Predicted Class: This vehicle is {predicted_label}")
