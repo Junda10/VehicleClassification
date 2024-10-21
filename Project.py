@@ -94,7 +94,7 @@ if uploaded_file is not None:
 
     # Confidence thresholds
     unknown_threshold = 0.3
-    not_vehicle_threshold = 0.2
+    not_vehicle_threshold = 0.25
 
     # Determine the prediction label
     if max_prob.item() < not_vehicle_threshold:
