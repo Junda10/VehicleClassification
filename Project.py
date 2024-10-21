@@ -9,6 +9,9 @@ import time  # To generate unique filenames and manage alerts
 import torch.nn.functional as F  # For softmax
 import pygame
 
+# Initialize Pygame’s mixer with proper handling
+pygame.mixer.init()  # Initialize mixer
+
 # Directories for training data and storing predictions
 train_dir = 'vehicleClass/train/'
 predictions_dir = 'vehicleClass/predictions/'
