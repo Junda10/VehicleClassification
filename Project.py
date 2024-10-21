@@ -5,13 +5,8 @@ from torchvision import transforms
 from PIL import Image
 from torchvision import models
 import pandas as pd
-import time  # To generate unique filenames and manage alerts
+import time  # To manage alerts
 import torch.nn.functional as F  # For softmax
-import pygame
-
-# Set SDL audio driver for Pygame
-os.environ["SDL_AUDIODRIVER"] = "dsp"  # Change to "alsa" or "pulse" for Linux if needed
-pygame.mixer.init()
 
 # Directories for training data and storing predictions
 train_dir = 'vehicleClass/train/'
@@ -77,8 +72,7 @@ alert_interval = 300  # 5 minutes (in seconds)
 last_alert_time = 0  # Store the timestamp of the last alert
 
 # Define vehicle classes for alerting
-alert_classes = {"heavy truck", "truck", "bus"}
-pygame.mixer.music.load("beep.mp3")
+alert_classes = {"heavy truck", "truck", "bus", "racing car"}
 
 # File uploader for image
 uploaded_file = st.file_uploader("Choose an image...", type=['png', 'jpg', 'jpeg'])
@@ -113,7 +107,8 @@ if uploaded_file is not None:
         if predicted_label.lower() in alert_classes:
             current_time = time.time()
             if current_time - last_alert_time >= alert_interval:
-                pygame.mixer.music.play()  # Play beep sound (replace with path to sound file)
+                # Play beep sound using Streamlit
+                st.audio("beep.mp3")  # Provide the path to your sound file
                 last_alert_time = current_time  # Update the last alert time
 
     # Display prediction and threshold
