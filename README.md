@@ -141,7 +141,7 @@ See the project docs for next steps:
 
 - [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — recommended hosting plan and pre-deployment checklist.
 - [`docs/DEMO.md`](docs/DEMO.md) — screenshot/GIF guide for a polished GitHub presentation.
-- [`docs/REPOSITORY_CLEANUP.md`](docs/REPOSITORY_CLEANUP.md) — large artifact cleanup options for dataset and model files.
+- [`docs/REPOSITORY_CLEANUP.md`](docs/REPOSITORY_CLEANUP.md) — large artifact cleanup options and the `main` / `with-dataset` branch strategy.
 
 ## Tech Stack
 

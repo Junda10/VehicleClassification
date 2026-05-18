@@ -44,7 +44,18 @@ Owner-selected strategy for this cleanup pass:
 
 Implementation note: `git rm -r --cached vehicleClass` removes the dataset from Git tracking without deleting the local files from disk. `.gitignore` prevents the dataset from being re-added accidentally.
 
-Important Git history note: this removes the dataset from the latest commit/tree, but it does not rewrite old Git history. If the goal is the smallest possible public repository, create a fresh clean GitHub repository from the cleaned working tree or rewrite history with a tool such as `git filter-repo` before publishing.
+## Branch Strategy
+
+The repository now uses a two-branch local strategy:
+
+| Branch | Purpose | Dataset tracking |
+| --- | --- | --- |
+| `main` | Clean production/portfolio branch for GitHub presentation | `vehicleClass/` is not tracked |
+| `with-dataset` | Preserved original project state with full dataset | `vehicleClass/` is tracked |
+
+Use `main` for README, deployment, and production cleanup work. Use `with-dataset` only when the original dataset-tracked version is needed for reference or retraining.
+
+Important Git history note: removing the dataset from `main` removes it from the latest commit/tree, but it does not rewrite old Git history. If the goal is the smallest possible public repository, create a fresh clean GitHub repository from the cleaned working tree or rewrite history with a tool such as `git filter-repo` before publishing.
 
 ## Possible Next Implementation Steps
 
