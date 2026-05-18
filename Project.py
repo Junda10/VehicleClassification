@@ -1,120 +1,115 @@
-import streamlit as st
-import os
 import torch
-from torchvision import transforms
+import torch.nn.functional as F
+import streamlit as st
 from PIL import Image
-from torchvision import models
-import pandas as pd
-import time  # To manage alerts
-import torch.nn.functional as F  # For softmax
+from torchvision import models, transforms
 
-# Directories for training data and storing predictions
-train_dir = 'vehicleClass/train/'
+# Class order must match the order used during training: sorted class folder names.
+CLASS_NAMES = [
+    "SUV",
+    "bus",
+    "family sedan",
+    "fire engine",
+    "heavy truck",
+    "jeep",
+    "minibus",
+    "racing car",
+    "taxi",
+    "truck",
+]
 
-# Create class and path mappings
-classes = []
-paths = []
-for dirname, _, filenames in os.walk(train_dir):
-    for filename in filenames:
-        classes.append(dirname.split('/')[-1])  # Get class name from directory name
-        paths.append(os.path.join(dirname, filename))  # Get file path
-
-# Create Class Name Mappings
-class_names = sorted(set(classes))
-normal_mapping = {name: index for index, name in enumerate(class_names)}
-
-# DataFrame with Paths, Classes, and Labels
-data = pd.DataFrame({'path': paths, 'class': classes})
-data['label'] = data['class'].map(normal_mapping)
-
-# Check if GPU is available
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-# Initialize Streamlit app
-st.title("Vehicle Classification App")
-st.write(f"This App can classify vehicles into these classes: {class_names}")
-st.write("Upload an image of a vehicle to classify it.")
-
-# Model selection dropdown
-model_options = {
+MODEL_OPTIONS = {
     "ResNet50 (Frozen Layers) 93.5%": "best_model.pth",
-    "ResNet50 (Unfrozen Layers) 98.0%": "best_model_unfreeze.pth"
-    #"VGG19 97.5%": "best_model_VGG.pth"
+    "ResNet50 (Unfrozen Layers) 97.5%": "best_model_unfreeze.pth",
 }
-selected_model = st.selectbox("Select Model:", list(model_options.keys()))
 
-# Load the selected model
-model_path = model_options[selected_model]
-if "VGG19" in selected_model:
-    best_model = models.vgg19(pretrained=True)
-    best_model.classifier[6] = torch.nn.Linear(best_model.classifier[6].in_features, len(class_names))
-else:  # Default to ResNet50
-    best_model = models.resnet50(pretrained=True)
-    best_model.fc = torch.nn.Linear(best_model.fc.in_features, len(class_names))
+HEAVY_VEHICLES = {"heavy truck", "bus", "minibus", "truck"}
+EMERGENCY_VEHICLES = {"fire engine"}
+NORMAL_VEHICLES = {"suv", "family sedan", "jeep", "racing car", "taxi"}
 
-# Load model weights
-best_model.load_state_dict(torch.load(model_path, map_location=device))
-best_model = best_model.to(device)
-best_model.eval()
+NOT_VEHICLE_THRESHOLD = 0.25
+UNKNOWN_THRESHOLD = 0.32
 
-# Image transformation
-transform = transforms.Compose([
-    transforms.RandomRotation(10),
-    transforms.RandomHorizontalFlip(),
-    transforms.Resize(224),
-    transforms.CenterCrop(224),
-    transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-])
 
-heavy_vehicles = ['heavy truck', 'bus', 'minibus', 'truck']
-emergency_vehicles = ['fire engine']
-normal_vehicles = ['SUV', 'family sedan', 'jeep', 'racing car', 'taxi']
+def get_device() -> torch.device:
+    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# File uploader for image
-uploaded_file = st.file_uploader("Choose an image...", type=['png', 'jpg', 'jpeg'])
 
-if uploaded_file is not None:
-    # Load and display the image
-    image = Image.open(uploaded_file).convert("RGB")
-    st.image(image, caption="Uploaded Image", use_column_width=True)
+@st.cache_resource
+def load_model(model_path: str, device_name: str) -> torch.nn.Module:
+    """Load a ResNet50 model checkpoint once per Streamlit session."""
+    device = torch.device(device_name)
+    model = models.resnet50(weights=None)
+    model.fc = torch.nn.Linear(model.fc.in_features, len(CLASS_NAMES))
 
-    # Preprocess the image
+    state_dict = torch.load(model_path, map_location=device)
+    model.load_state_dict(state_dict)
+    model.to(device)
+    model.eval()
+    return model
+
+
+def build_inference_transform() -> transforms.Compose:
+    """Deterministic preprocessing for production inference."""
+    return transforms.Compose(
+        [
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        ]
+    )
+
+
+def predict(image: Image.Image, model: torch.nn.Module, device: torch.device):
+    transform = build_inference_transform()
     img_tensor = transform(image).unsqueeze(0).to(device)
 
-    # Make a prediction
     with torch.no_grad():
-        output = best_model(img_tensor)
+        output = model(img_tensor)
         probabilities = F.softmax(output, dim=1)
-        max_prob, pred = torch.max(probabilities, 1)
+        confidence, pred = torch.max(probabilities, 1)
 
-    # Confidence thresholds
-    unknown_threshold = 0.32
-    not_vehicle_threshold = 0.25
+    return CLASS_NAMES[pred.item()], confidence.item()
 
-    # Determine the prediction label
-    if max_prob.item() < not_vehicle_threshold:
-        predicted_label = "not a vehicle."
+
+def play_category_alert(predicted_label: str) -> None:
+    label = predicted_label.lower()
+    if label in HEAVY_VEHICLES:
+        st.audio("beep.mp3")
+    elif label in EMERGENCY_VEHICLES:
+        st.audio("beep2.mp3")
+    elif label in NORMAL_VEHICLES:
+        st.audio("beep3.mp3")
+
+
+st.set_page_config(page_title="Vehicle Classification", page_icon="🚗")
+st.title("Vehicle Classification App")
+st.write(f"This app can classify vehicles into {len(CLASS_NAMES)} classes: {', '.join(CLASS_NAMES)}.")
+st.write("Upload an image of a vehicle to classify it.")
+
+selected_model = st.selectbox("Select Model:", list(MODEL_OPTIONS.keys()))
+model_path = MODEL_OPTIONS[selected_model]
+device = get_device()
+model = load_model(model_path, str(device))
+
+uploaded_file = st.file_uploader("Choose an image...", type=["png", "jpg", "jpeg"])
+
+if uploaded_file is not None:
+    image = Image.open(uploaded_file).convert("RGB")
+    st.image(image, caption="Uploaded Image", use_container_width=True)
+
+    predicted_class, confidence = predict(image, model, device)
+
+    if confidence < NOT_VEHICLE_THRESHOLD:
+        predicted_label = "not a vehicle"
         st.audio("beep4.mp3")
-    elif max_prob.item() < unknown_threshold:
-        predicted_label = "unknown vehicle."
+    elif confidence < UNKNOWN_THRESHOLD:
+        predicted_label = "unknown vehicle"
         st.audio("beep4.mp3")
     else:
-        predicted_label = class_names[pred.item()]  # Get the class name
+        predicted_label = predicted_class
+        play_category_alert(predicted_label)
 
-        # Check if the detected vehicle belongs to alert classes
-        current_time = time.time()
-        
-        if predicted_label.lower() in heavy_vehicles:
-            st.audio("beep.mp3")  # Provide the path to your sound file
-
-        # Check if the predicted class is a fire engine
-        if predicted_label.lower() in emergency_vehicles:
-            st.audio("beep2.mp3")  # Provide the path to your fire engine sound file
-            
-        if predicted_label.lower() in normal_vehicles:
-            st.audio("beep3.mp3")  # Provide the path to your fire engine sound file
-            
-    # Display prediction and threshold
-    st.write(f"Threshold: {max_prob.item()}")
-    st.write(f"Predicted Class: This is {predicted_label}")
+    st.write(f"Confidence: {confidence:.4f}")
+    st.write(f"Predicted Class: This is {predicted_label}.")

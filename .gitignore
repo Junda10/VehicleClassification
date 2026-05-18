@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+ENV/
+
+# Package/build artifacts
+build/
+dist/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Logs and local outputs
+*.log
+logs/
+outputs/
+runs/
+
+# Large ML artifacts
+# Existing tracked files are not removed by this file; this prevents accidental future large commits.
+*.pth
+*.pt
+*.onnx
+*.ckpt
+
+# Local datasets
+# Existing tracked dataset files are not removed by this file; consider moving datasets to external storage.
+data/
+datasets/
+vehicleClass/
