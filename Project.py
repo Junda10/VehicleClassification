@@ -27,8 +27,7 @@ HEAVY_VEHICLES = {"heavy truck", "bus", "minibus", "truck"}
 EMERGENCY_VEHICLES = {"fire engine"}
 NORMAL_VEHICLES = {"suv", "family sedan", "jeep", "racing car", "taxi"}
 
-NOT_VEHICLE_THRESHOLD = 0.25
-UNKNOWN_THRESHOLD = 0.32
+NOT_VEHICLE_THRESHOLD = 0.40
 
 
 def get_device() -> torch.device:
@@ -42,7 +41,7 @@ def load_model(model_path: str, device_name: str) -> torch.nn.Module:
     model = models.resnet50(weights=None)
     model.fc = torch.nn.Linear(model.fc.in_features, len(CLASS_NAMES))
 
-    state_dict = torch.load(model_path, map_location=device)
+    state_dict = torch.load(model_path, map_location=device, weights_only=True)
     model.load_state_dict(state_dict)
     model.to(device)
     model.eval()
@@ -97,15 +96,12 @@ uploaded_file = st.file_uploader("Choose an image...", type=["png", "jpg", "jpeg
 
 if uploaded_file is not None:
     image = Image.open(uploaded_file).convert("RGB")
-    st.image(image, caption="Uploaded Image", use_container_width=True)
+    st.image(image, caption="Uploaded Image", use_column_width=True)
 
     predicted_class, confidence = predict(image, model, device)
 
     if confidence < NOT_VEHICLE_THRESHOLD:
         predicted_label = "not a vehicle"
-        st.audio("beep4.mp3")
-    elif confidence < UNKNOWN_THRESHOLD:
-        predicted_label = "unknown vehicle"
         st.audio("beep4.mp3")
     else:
         predicted_label = predicted_class
