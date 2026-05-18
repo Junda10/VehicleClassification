@@ -142,6 +142,7 @@ See the project docs for next steps:
 - [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — recommended hosting plan and pre-deployment checklist.
 - [`docs/DEMO.md`](docs/DEMO.md) — screenshot/GIF guide for a polished GitHub presentation.
 - [`docs/REPOSITORY_CLEANUP.md`](docs/REPOSITORY_CLEANUP.md) — large artifact cleanup options and the `main` / `with-dataset` branch strategy.
+- [`docs/GITHUB_PUBLISH.md`](docs/GITHUB_PUBLISH.md) — recommended commands for pushing `main` and `with-dataset` to GitHub.
 
 ## Tech Stack
 
